@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.1.1';
+const VERSION = '0.1.2';
 const MAX_PRODUCTS = 9;          // + 1 shelf photo = 10 images, Gemini's per-message limit
 const PHOTO_MAX_SIDE = 1600;     // downscale camera photos before storing
 const STITCH_MAX_WIDTH = 2400;
@@ -373,11 +373,20 @@ $('#home-store-btn').addEventListener('click', () => go('store'));
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+const isSamsungInternet = () => /SamsungBrowser/i.test(navigator.userAgent) && /Android/i.test(navigator.userAgent);
+const chromeIntentURL = () => `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;`
+  + `S.browser_fallback_url=${encodeURIComponent('https://play.google.com/store/apps/details?id=com.android.chrome')};end`;
+
 async function renderInstallBanner() {
   const el = $('#install-banner');
   if (isStandalone() || (await DB.get('installDismissed'))) { el.hidden = true; return; }
   let html;
-  if (state.installEvent) {
+  if (isSamsungInternet()) {
+    // Samsung Internet's own "install" builds an outdated app package that Play Protect blocks as unsafe
+    // (open Samsung bug since Apr 2026). Chrome's install is not affected.
+    html = '<b>Install with Chrome, not Samsung Internet.</b> Samsung Internet\'s install button is currently blocked by Google Play Protect ("built for an older version of Android"). That\'s a Samsung bug, not a problem with LabelCheck. Open LabelCheck in Chrome, then menu <b>⋮</b> → <b>Install app</b>.<br>'
+      + `<a class="btn small primary" href="${esc(chromeIntentURL())}">Open in Chrome</a>`;
+  } else if (state.installEvent) {
     html = '<b>Install LabelCheck</b> on your phone so it opens like an app and keeps your history.<br><button class="btn small primary" id="inst-go">Install</button>';
   } else if (isIOS()) {
     html = '<b>Add to Home Screen</b> or iPhone may delete your history after 7 days: tap Share <b>⬆</b> then <b>Add to Home Screen</b>.';
