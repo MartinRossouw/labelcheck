@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>LabelCheck</title>
+  <meta name="description" content="Compare products in the shop: front of pack vs back of pack, ranked for your health, using the AI already on your phone.">
+  <meta name="theme-color" content="#07090a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LabelCheck">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" data-go="home" aria-label="Home">
+      <img src="icons/icon-192.png" alt="" width="32" height="32">
+      <span>Label<b>Check</b></span>
+    </button>
+    <button class="icon-btn" data-go="settings" aria-label="Settings">⚙</button>
+  </header>
+
+  <main id="app">
+
+    <!-- ============ SETUP (first run) ============ -->
+    <section id="view-setup" class="view" hidden>
+      <h1>Welcome</h1>
+      <p class="lead">Take a photo of the <b>front</b> and the <b>back</b> of each product. LabelCheck sends them to the AI already on your phone, which checks whether the front tells the truth and ranks them for your health.</p>
+
+      <h2>1. Your health</h2>
+      <p class="hint">Tick what applies. This stays on your phone.</p>
+      <div id="setup-profile" class="checks"></div>
+      <label class="field">Anything else? <span class="hint">(e.g. "trying to lose weight", "no pork")</span>
+        <input id="setup-other" type="text" maxlength="200">
+      </label>
+
+      <h2>2. Your AI</h2>
+      <p class="hint">Which AI app do you use? Gemini is already on most Android phones.</p>
+      <div id="setup-assistant" class="radios"></div>
+
+      <h2>3. Important</h2>
+      <label class="check consent"><input id="setup-consent" type="checkbox">
+        <span>I understand LabelCheck gives <b>information only, not medical advice</b>. The AI can make mistakes. For medical decisions I will ask my doctor or dietitian.</span>
+      </label>
+
+      <button id="setup-done" class="btn primary big" disabled>Start</button>
+    </section>
+
+    <!-- ============ HOME ============ -->
+    <section id="view-home" class="view" hidden>
+      <div id="install-banner" class="banner" hidden></div>
+
+      <div class="store-card">
+        <div>
+          <div class="hint">You are at</div>
+          <div id="home-store" class="store-name">No store set</div>
+        </div>
+        <button class="btn small" id="home-store-btn">Change</button>
+      </div>
+
+      <button class="btn primary big" data-go="compare">📷 Compare products</button>
+
+      <h2>My best list</h2>
+      <div id="best-list" class="cards"></div>
+
+      <h2>History</h2>
+      <div id="history-list" class="cards"></div>
+    </section>
+
+    <!-- ============ STORE ============ -->
+    <section id="view-store" class="view" hidden>
+      <h1>Which store?</h1>
+      <p class="hint">The AI uses this to suggest better options this store sells.</p>
+      <button id="store-detect" class="btn">📍 Find stores near me</button>
+      <p id="store-status" class="hint"></p>
+      <div id="store-results" class="cards"></div>
+      <label class="field">Or type it
+        <input id="store-input" type="text" placeholder="e.g. Checkers, Malelane" maxlength="100">
+      </label>
+      <div class="row">
+        <button id="store-save" class="btn primary">Save</button>
+        <button id="store-clear" class="btn">No store</button>
+      </div>
+      <p class="hint small">"Find stores near me" sends your location to OpenStreetMap (free map service) once, to look up nearby shops. Nothing else is sent.</p>
+    </section>
+
+    <!-- ============ COMPARE ============ -->
+    <section id="view-compare" class="view" hidden>
+      <label class="field">What are you buying? <span class="hint">(optional, helps the app learn)</span>
+        <input id="cmp-category" type="text" placeholder="e.g. peanut butter, rice, pasta" maxlength="60" list="cat-suggest">
+        <datalist id="cat-suggest"></datalist>
+      </label>
+
+      <div id="cmp-products" class="products"></div>
+
+      <button id="cmp-add" class="btn big">＋ Add product</button>
+
+      <div class="shelf-box">
+        <div>
+          <b>📷 Shelf photo</b> <span class="hint">(optional)</span>
+          <p class="hint small">One wide photo of the whole shelf, so the AI can spot better products you missed.</p>
+        </div>
+        <div id="cmp-shelf"></div>
+      </div>
+
+      <p id="cmp-count" class="hint"></p>
+      <div class="row sticky-bottom">
+        <button id="cmp-clear" class="btn">Start over</button>
+        <button id="cmp-go" class="btn primary grow" disabled>Compare</button>
+      </div>
+    </section>
+
+    <!-- ============ SEND ============ -->
+    <section id="view-send" class="view" hidden>
+      <h1>Send to your AI</h1>
+      <div id="send-preview" class="preview-strip"></div>
+      <ol class="steps">
+        <li>Tap the button below and choose <b id="send-ai-name">your AI app</b> in the share menu.</li>
+        <li>If the question doesn't appear with the photos, tap the message box and <b>Paste</b>. It's already copied.</li>
+        <li>Read the answer, then come back here and tell LabelCheck what you bought.</li>
+      </ol>
+      <button id="send-share" class="btn primary big">Send to AI</button>
+      <p id="send-status" class="hint"></p>
+      <details class="prompt-box">
+        <summary>See the question that gets sent</summary>
+        <pre id="send-prompt"></pre>
+        <button id="send-copy" class="btn small">Copy question again</button>
+      </details>
+      <div class="row">
+        <button class="btn" data-go="compare">← Back</button>
+        <button class="btn primary grow" data-go="pick">I've got the answer →</button>
+      </div>
+    </section>
+
+    <!-- ============ PICK ============ -->
+    <section id="view-pick" class="view" hidden>
+      <h1>What did you choose?</h1>
+      <p class="hint">Tap the one you're buying. This is how LabelCheck learns.</p>
+      <div id="pick-grid" class="pick-grid"></div>
+      <label class="field">Product name <span class="hint">(optional)</span>
+        <input id="pick-name" type="text" placeholder="e.g. Black Cat Smooth" maxlength="80">
+      </label>
+      <label class="field">Note <span class="hint">(optional)</span>
+        <input id="pick-note" type="text" placeholder="e.g. AI said P2 has hidden sugar" maxlength="200">
+      </label>
+      <details class="prompt-box">
+        <summary>Paste the AI's answer to keep it (optional)</summary>
+        <textarea id="pick-answer" rows="6"></textarea>
+      </details>
+      <button id="pick-save" class="btn primary big" disabled>Save</button>
+    </section>
+
+    <!-- ============ ENTRY (history detail) ============ -->
+    <section id="view-entry" class="view" hidden>
+      <div id="entry-body"></div>
+      <h2>After trying it</h2>
+      <div class="row">
+        <button class="btn grow" id="entry-like">👍 Good</button>
+        <button class="btn grow" id="entry-dislike">👎 Not again</button>
+      </div>
+      <label class="field">How was it?
+        <input id="entry-feedback" type="text" placeholder="e.g. too salty, kids loved it" maxlength="200">
+      </label>
+      <div class="row">
+        <button class="btn" data-go="home">← Back</button>
+        <button class="btn primary grow" id="entry-save">Save</button>
+      </div>
+      <button class="btn danger small" id="entry-delete">Delete this entry</button>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="view-settings" class="view" hidden>
+      <h1>Settings</h1>
+      <h2>Your health</h2>
+      <div id="set-profile" class="checks"></div>
+      <label class="field">Anything else?
+        <input id="set-other" type="text" maxlength="200">
+      </label>
+      <h2>Your AI</h2>
+      <div id="set-assistant" class="radios"></div>
+      <button id="set-save" class="btn primary">Save settings</button>
+
+      <h2>Your data</h2>
+      <p class="hint">Everything is stored only on this phone. Back it up now and then: phones can clear website data.</p>
+      <div class="row wrap">
+        <button id="set-export" class="btn">⬇ Back up</button>
+        <label class="btn">⬆ Restore<input id="set-import" type="file" accept="application/json,.json" hidden></label>
+        <button id="set-wipe" class="btn danger">Delete everything</button>
+      </div>
+      <p id="set-storage" class="hint small"></p>
+
+      <h2>About</h2>
+      <p class="hint">LabelCheck is free and open source. It has no server, no accounts and no tracking. Photos go only to the AI app <i>you</i> choose. Information only, not medical advice.</p>
+      <p class="hint small">Version <span id="set-version"></span> · <a href="https://github.com/MartinRossouw/labelcheck" target="_blank" rel="noopener">Source code</a></p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- hidden camera inputs -->
+  <input id="cam" type="file" accept="image/*" capture="environment" hidden>
+
+  <script src="app.js"></script>
+</body>
+</html>
