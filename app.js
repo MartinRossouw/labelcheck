@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 const MAX_PRODUCTS = 9;          // + 1 shelf photo = 10 images, Gemini's per-message limit
 const PHOTO_MAX_SIDE = 1600;     // downscale camera photos before storing
 const STITCH_MAX_WIDTH = 2400;

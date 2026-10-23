@@ -1,5 +1,5 @@
 // Network-first app shell: updates arrive straight away when online, the app still opens offline.
-const CACHE = 'labelcheck-v0.1.0';
+const CACHE = 'labelcheck-v0.1.1';
 const ASSETS = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
